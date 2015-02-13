@@ -137,6 +137,12 @@
 			// Number - pixel width of padding around tooltip text
 			tooltipXPadding: 6,
 
+			// Number - pixel width of margin around tooltip text
+			tooltipYMargin: 0,
+
+			// Number - pixel width of margin around tooltip text
+			tooltipXMargin: 0,
+
 			// Number - Size of the caret on the tooltip
 			tooltipCaretSize: 8,
 
@@ -982,6 +988,8 @@
 						y: medianPosition.y,
 						xPadding: this.options.tooltipXPadding,
 						yPadding: this.options.tooltipYPadding,
+						xMargin: this.options.tooltipXMargin,
+						yMargin: this.options.tooltipYMargin,
 						xOffset: this.options.tooltipXOffset,
 						fillColor: this.options.tooltipFillColor,
 						textColor: this.options.tooltipFontColor,
@@ -1010,6 +1018,8 @@
 							y: Math.round(tooltipPosition.y),
 							xPadding: this.options.tooltipXPadding,
 							yPadding: this.options.tooltipYPadding,
+							xMargin: this.options.tooltipXMargin,
+							yMargin: this.options.tooltipYMargin,
 							fillColor: this.options.tooltipFillColor,
 							textColor: this.options.tooltipFontColor,
 							fontFamily: this.options.tooltipFontFamily,
@@ -1291,9 +1301,17 @@
 				this.yAlign = "below";
 			}
 
-
 			var tooltipX = this.x - tooltipWidth/2,
 				tooltipY = this.y - tooltipHeight;
+
+
+			if(this.yAlign == "above") {
+				tooltipX -= this.xMargin;
+				tooltipY -= this.yMargin;				
+			} else {
+				tooltipX += this.xMargin;
+				tooltipY += this.yMargin;
+			}
 
 			ctx.fillStyle = this.fillColor;
 
@@ -1306,22 +1324,26 @@
 				{
 				case "above":
 					//Draw a caret above the x/y
+					ctx.translate(-this.xMargin, -this.yMargin);
 					ctx.beginPath();
 					ctx.moveTo(this.x,this.y - caretPadding);
 					ctx.lineTo(this.x + this.caretHeight, this.y - (caretPadding + this.caretHeight));
 					ctx.lineTo(this.x - this.caretHeight, this.y - (caretPadding + this.caretHeight));
 					ctx.closePath();
 					ctx.fill();
+					ctx.translate(this.xMargin, this.yMargin);
 					break;
 				case "below":
 					tooltipY = this.y + caretPadding + this.caretHeight;
 					//Draw a caret below the x/y
+					ctx.translate(this.xMargin, this.yMargin);
 					ctx.beginPath();
 					ctx.moveTo(this.x, this.y + caretPadding);
 					ctx.lineTo(this.x + this.caretHeight, this.y + caretPadding + this.caretHeight);
 					ctx.lineTo(this.x - this.caretHeight, this.y + caretPadding + this.caretHeight);
 					ctx.closePath();
 					ctx.fill();
+					ctx.translate(-this.xMargin, -this.yMargin);
 					break;
 				}
 
@@ -1333,6 +1355,11 @@
 				case "right":
 					tooltipX = this.x - (this.cornerRadius + this.caretHeight);
 					break;
+				}
+
+				if(this.yAlign == "below") {
+					tooltipX += this.xMargin;
+					tooltipY += this.yMargin;
 				}
 
 				drawRoundedRectangle(ctx,tooltipX,tooltipY,tooltipWidth,tooltipRectHeight,this.cornerRadius);

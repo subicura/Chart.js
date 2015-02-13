@@ -25,25 +25,8 @@
 		this.ctx = context;
 
 		//Variables global to the chart
-		var computeDimension = function(element,dimension)
-		{
-			if (element['offset'+dimension])
-			{
-				return element['offset'+dimension];
-			}
-			else
-			{
-				return document.defaultView.getComputedStyle(element).getPropertyValue(dimension);
-			}
-		}
-
-		var width = this.width = computeDimension(context.canvas,'Width');
-		var height = this.height = computeDimension(context.canvas,'Height');
-
-		// Firefox requires this to work correctly
-		context.canvas.width  = width;
-		context.canvas.height = height;
-
+		var width = this.width = context.canvas.width;
+		var height = this.height = context.canvas.height;
 		this.aspectRatio = this.width / this.height;
 		//High pixel density displays - multiply the size of the canvas height/width by the device pixel ratio, then scale.
 		helpers.retinaScale(this);
@@ -153,6 +136,12 @@
 
 			// Number - pixel width of padding around tooltip text
 			tooltipXPadding: 6,
+
+			// Number - pixel width of margin around tooltip text
+			tooltipYMargin: 0,
+
+			// Number - pixel width of margin around tooltip text
+			tooltipXMargin: 0,
 
 			// Number - Size of the caret on the tooltip
 			tooltipCaretSize: 8,
@@ -842,7 +831,7 @@
 		},
 		stop : function(){
 			// Stops any current animation loop occuring
-			helpers.cancelAnimFrame.call(root, this.animationFrame);
+			helpers.cancelAnimFrame(this.animationFrame);
 			return this;
 		},
 		resize : function(callback){
@@ -999,6 +988,8 @@
 						y: medianPosition.y,
 						xPadding: this.options.tooltipXPadding,
 						yPadding: this.options.tooltipYPadding,
+						xMargin: this.options.tooltipXMargin,
+						yMargin: this.options.tooltipYMargin,
 						xOffset: this.options.tooltipXOffset,
 						fillColor: this.options.tooltipFillColor,
 						textColor: this.options.tooltipFontColor,
@@ -1027,6 +1018,8 @@
 							y: Math.round(tooltipPosition.y),
 							xPadding: this.options.tooltipXPadding,
 							yPadding: this.options.tooltipYPadding,
+							xMargin: this.options.tooltipXMargin,
+							yMargin: this.options.tooltipYMargin,
 							fillColor: this.options.tooltipFillColor,
 							textColor: this.options.tooltipFontColor,
 							fontFamily: this.options.tooltipFontFamily,
@@ -1308,9 +1301,17 @@
 				this.yAlign = "below";
 			}
 
-
 			var tooltipX = this.x - tooltipWidth/2,
 				tooltipY = this.y - tooltipHeight;
+
+
+			if(this.yAlign == "above") {
+				tooltipX -= this.xMargin;
+				tooltipY -= this.yMargin;				
+			} else {
+				tooltipX += this.xMargin;
+				tooltipY += this.yMargin;
+			}
 
 			ctx.fillStyle = this.fillColor;
 
@@ -1323,22 +1324,26 @@
 				{
 				case "above":
 					//Draw a caret above the x/y
+					ctx.translate(-this.xMargin, -this.yMargin);
 					ctx.beginPath();
 					ctx.moveTo(this.x,this.y - caretPadding);
 					ctx.lineTo(this.x + this.caretHeight, this.y - (caretPadding + this.caretHeight));
 					ctx.lineTo(this.x - this.caretHeight, this.y - (caretPadding + this.caretHeight));
 					ctx.closePath();
 					ctx.fill();
+					ctx.translate(this.xMargin, this.yMargin);
 					break;
 				case "below":
 					tooltipY = this.y + caretPadding + this.caretHeight;
 					//Draw a caret below the x/y
+					ctx.translate(this.xMargin, this.yMargin);
 					ctx.beginPath();
 					ctx.moveTo(this.x, this.y + caretPadding);
 					ctx.lineTo(this.x + this.caretHeight, this.y + caretPadding + this.caretHeight);
 					ctx.lineTo(this.x - this.caretHeight, this.y + caretPadding + this.caretHeight);
 					ctx.closePath();
 					ctx.fill();
+					ctx.translate(-this.xMargin, -this.yMargin);
 					break;
 				}
 
@@ -1350,6 +1355,11 @@
 				case "right":
 					tooltipX = this.x - (this.cornerRadius + this.caretHeight);
 					break;
+				}
+
+				if(this.yAlign == "below") {
+					tooltipX += this.xMargin;
+					tooltipY += this.yMargin;
 				}
 
 				drawRoundedRectangle(ctx,tooltipX,tooltipY,tooltipWidth,tooltipRectHeight,this.cornerRadius);
@@ -2433,12 +2443,12 @@
 			}
 		},
 		calculateCircumference : function(value){
-			return (Math.PI*2)*(value / this.total);
+			return (Math.PI*2)*(Math.abs(value) / this.total);
 		},
 		calculateTotal : function(data){
 			this.total = 0;
 			helpers.each(data,function(segment){
-				this.total += segment.value;
+				this.total += Math.abs(segment.value);
 			},this);
 		},
 		update : function(){
@@ -3078,6 +3088,8 @@
 			helpers.each(this.segments,function(segment){
 				segment.save();
 			});
+			
+			this.reflow();
 			this.render();
 		},
 		reflow : function(){
