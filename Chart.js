@@ -800,6 +800,9 @@
 			ctx.lineTo(x, y + radius);
 			ctx.quadraticCurveTo(x, y, x + radius, y);
 			ctx.closePath();
+		},
+		isArray = helpers.isArray = function(val) {
+			return Object.prototype.toString.call(val) === '[object Array]'
 		};
 
 
@@ -2130,7 +2133,6 @@
 
 			//Iterate through each of the datasets, and build this into a property of the chart
 			helpers.each(data.datasets,function(dataset,datasetIndex){
-
 				var datasetObject = {
 					label : dataset.label || null,
 					fillColor : dataset.fillColor,
@@ -2142,14 +2144,19 @@
 
 				helpers.each(dataset.data,function(dataPoint,index){
 					//Add a new point for each piece of data, passing any required data to draw.
+					var fillColor = helpers.isArray(dataset.fillColor) ? dataset.fillColor[index] : dataset.fillColor;
+					var strokeColor = helpers.isArray(dataset.strokeColor) ? dataset.strokeColor[index] : dataset.strokeColor;
+					var highlightFill = helpers.isArray(dataset.highlightFill) ? dataset.highlightFill[index] : dataset.highlightFill;
+					var highlightStroke = helpers.isArray(dataset.highlightStroke) ? dataset.highlightStroke[index] : dataset.highlightStroke;
+
 					datasetObject.bars.push(new this.BarClass({
 						value : dataPoint,
 						label : data.labels[index],
 						datasetLabel: dataset.label,
-						strokeColor : dataset.strokeColor,
-						fillColor : dataset.fillColor,
-						highlightFill : dataset.highlightFill || dataset.fillColor,
-						highlightStroke : dataset.highlightStroke || dataset.strokeColor
+						strokeColor : strokeColor,
+						fillColor : fillColor,
+						highlightFill : highlightFill || dataset.fillColor,
+						highlightStroke : highlightStroke || dataset.strokeColor
 					}));
 				},this);
 
