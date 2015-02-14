@@ -2513,7 +2513,7 @@
 				helpers.extend(bar, {
 					width : this.scale.calculateBarWidth(this.datasets.length),
 					x: this.scale.calculateBarX(this.datasets.length, datasetIndex, index),
-					y: this.chart.height - this.scale.endPoint
+					y: this.chart.width - this.scale.endPoint
 				});
 				bar.save();
 			}, this);
@@ -2566,11 +2566,10 @@
 				});
 				return values;
 			};
-
 			var scaleOptions = {
 				templateString : this.options.scaleLabel,
-				height : this.chart.height,
-				width : this.chart.width,
+				height : this.chart.width,
+				width : this.chart.height,
 				ctx : this.chart.ctx,
 				textColor : this.options.scaleFontColor,
 				fontSize : this.options.scaleFontSize,
@@ -2648,8 +2647,8 @@
 				base : this.scale.endPoint
 			});
 			var newScaleProps = helpers.extend({
-				height : this.chart.height,
-				width : this.chart.width
+				height : this.chart.width,
+				width : this.chart.height
 			});
 			this.scale.update(newScaleProps);
 		},
@@ -2669,7 +2668,7 @@
 						//Transition then draw
 						bar.transition({
 							x : this.scale.calculateBarX(this.datasets.length, datasetIndex, index),
-							y : this.chart.height - this.scale.calculateY(bar.value),
+							y : this.chart.width - this.scale.calculateY(bar.value),
 							width : this.scale.calculateBarWidth(this.datasets.length)
 						}, easingDecimal).draw();
 					}
